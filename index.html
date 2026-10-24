@@ -1,19 +1,34 @@
 <!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>THE END — мини-игра</title><style>
 @font-face{font-family:"MinecraftBitmap";src:url("assets/minecraft-resource.ttf") format("truetype");font-display:swap}
 *{box-sizing:border-box}body{margin:0;background:#08050c;color:#fff;font-family:'MinecraftBitmap',monospace}#game{height:600px;position:relative;overflow:hidden;background:#0b0712}canvas{display:block;width:100%;height:100%;image-rendering:auto;cursor:crosshair}#overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;background:#09060cb9;gap:22px;padding:20px}h1{font-size:clamp(22px,5vw,48px);text-shadow:4px 4px #372446;margin:0;line-height:1.5}p{font-size:10px;line-height:2.3;max-width:620px}button{font:12px 'MinecraftBitmap',monospace;color:#fff;background:#777;border:3px solid #111;box-shadow:inset 3px 3px #aaa,inset -3px -3px #333;padding:17px;cursor:pointer}button:hover{background:#888}#hud{display:none;position:absolute;inset:0;pointer-events:none}#boss{position:absolute;top:16px;left:50%;transform:translateX(-50%);width:min(560px,85%);text-align:center;font-size:11px;text-shadow:2px 2px black}#bar{height:12px;background:#222;border:2px solid #888;margin-top:8px}#fill{height:100%;background:#c359b3;width:100%;transition:width .3s}#cross{display:none!important;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:30px;height:30px;font-size:0;background:url("assets/crosshair.png") center/contain no-repeat;image-rendering:pixelated}#hotbar{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);width:364px;height:44px;background:url("assets/hotbar.png") center/100% 100% no-repeat;image-rendering:pixelated;display:block}#hotbar span{display:none}#hotbar::before{content:"";position:absolute;left:0;top:-2px;width:48px;height:48px;background:url("assets/selection.png") center/100% 100% no-repeat;image-rendering:pixelated}#hotbar::after{content:"";position:absolute;left:9px;top:5px;width:29px;height:29px;background:url("assets/bow.png") center/contain no-repeat;image-rendering:pixelated}#hearts{position:absolute;bottom:66px;left:calc(50% - 182px);display:flex;gap:2px;font-size:0}#hearts::before{content:"";display:block;width:180px;height:18px;background:url("assets/heart_full.png") left center/18px 18px repeat-x;image-rendering:pixelated}#hint{position:absolute;bottom:105px;width:100%;text-align:center;font-size:9px;text-shadow:2px 2px black}#flash{position:absolute;inset:0;background:#e6a1ff;opacity:0;pointer-events:none}#heldbow{position:absolute;right:5%;bottom:-15%;height:88%;width:35%;background:url("assets/bow.png") center/contain no-repeat;image-rendering:pixelated;transform:rotate(-10deg);transform-origin:bottom right;pointer-events:none;filter:drop-shadow(6px 6px 0 #0005)}#credit{position:absolute;right:10px;bottom:5px;color:#ccc;font:9px Arial;text-shadow:1px 1px #000}
-</style></head><body><div id="game"><div id="view"></div><div id="flash"></div><div id="hud"><div id="boss">ДРАКОН КРАЯ<div id="bar"><div id="fill"></div></div></div><div id="cross"></div><div id="heldbow"></div><div id="hint">НАВЕДИ МЫШЬ НА ДРАКОНА И СТРЕЛЯЙ</div><div id="hearts">♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥</div><div id="hotbar"><span>🏹</span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div><div id="overlay"><h1 id="heading">THE END</h1><p id="description">Последнее испытание.<br>Войди в портал и победи Дракона Края.<br>5 попаданий из лука.</p><button id="start">ВОЙТИ В ПОРТАЛ</button></div><div id="credit">Фанатская мини-игра · текстуры из предоставленных файлов Minecraft · неофициальный проект</div></div>
+
+/* Вход в Край: отдельная сцена и экран загрузки */
+#portal-intro{position:absolute;inset:0;z-index:5;background:#17141b;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#portal-art{width:100%;height:100%;object-fit:cover;image-rendering:pixelated}
+#portal-intro .portal-controls{position:absolute;bottom:8%;left:50%;transform:translateX(-50%);text-align:center;display:flex;flex-direction:column;align-items:center;gap:15px;width:95%}
+#portal-intro .portal-controls p{font-size:13px;margin:0;color:#fff;text-shadow:2px 2px #000;line-height:1.6}
+#portal-intro .portal-controls button{min-width:220px}
+#loading-screen{display:none;position:absolute;inset:0;z-index:20;background:#8b55d6;image-rendering:pixelated;align-items:center;justify-content:center;flex-direction:column;gap:20px;text-align:center;text-shadow:2px 2px #333}
+#loading-screen:before{content:'';position:absolute;inset:0;background:transparent;pointer-events:none}
+#loading-screen .loading-title,#loading-screen .loading-status,#loading-screen .loading-track{position:relative;z-index:1}
+#loading-screen .loading-title{font-size:clamp(16px,3vw,25px)}
+#loading-screen .loading-status{font-size:11px}
+#loading-screen .loading-track{width:min(320px,75%);height:14px;border:2px solid #aaa;background:#161616}
+#loading-screen .loading-progress{height:100%;width:0;background:#8ad58b;transition:width .18s linear}
+</style></head><body><div id="game"><div id="view"></div><div id="portal-intro"><canvas id="portal-art" width="640" height="360"></canvas><div class="portal-controls"><p>ПОРТАЛ В КРАЙ</p><button id="enter-end">ВОЙТИ В ПОРТАЛ</button></div></div><div id="loading-screen"><div class="loading-title">Загрузка мира...</div><div class="loading-status" id="loading-status">Подготовка измерения</div><div class="loading-track"><div class="loading-progress" id="loading-progress"></div></div></div><div id="flash"></div><div id="hud"><div id="boss">ДРАКОН КРАЯ<div id="bar"><div id="fill"></div></div></div><div id="cross"></div><div id="heldbow"></div><div id="hint">НАВЕДИ МЫШЬ НА ДРАКОНА И СТРЕЛЯЙ</div><div id="hearts">♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥</div><div id="hotbar"><span>🏹</span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div><div id="overlay"><h1 id="heading">THE END</h1><p id="description">Последнее испытание.<br>Войди в портал и победи Дракона Края.<br>5 попаданий из лука.</p><button id="start">ВОЙТИ В ПОРТАЛ</button></div><div id="credit">Фанатская мини-игра · текстуры из предоставленных файлов Minecraft · неофициальный проект</div></div>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
 const game=document.querySelector('#game'),view=document.querySelector('#view'),overlay=document.querySelector('#overlay'),hud=document.querySelector('#hud'),heading=document.querySelector('#heading'),description=document.querySelector('#description'),start=document.querySelector('#start'),fill=document.querySelector('#fill'),flash=document.querySelector('#flash');
+overlay.style.display='none';
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setSize(960,600,false);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.NoToneMapping;view.appendChild(renderer.domElement);
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x1b1426);scene.fog=new THREE.Fog(0x282034,95,220);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x1b1426);scene.fog=new THREE.Fog(0x282034,110,240);
 const camera=new THREE.PerspectiveCamera(70,1.6,.1,160);camera.position.set(0,5.2,16);camera.lookAt(0,8,-15);
-scene.add(new THREE.AmbientLight(0xffffff,3.5));const light=new THREE.DirectionalLight(0xfff5e6,2.8);light.position.set(-8,22,10);scene.add(light);
+scene.add(new THREE.AmbientLight(0xffffff,2.6));const light=new THREE.DirectionalLight(0xfff5e6,2.2);light.position.set(-8,22,10);scene.add(light);
 const loader=new THREE.TextureLoader();function tex(name){let t=loader.load('assets/'+name+'.png');t.magFilter=THREE.NearestFilter;t.minFilter=THREE.NearestMipmapNearestFilter;t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;return t}
 const endTex=tex('end_stone'),obsTex=tex('obsidian'),dragonTex=tex('dragon'),crystalTex=tex('crystal');
 // Настоящая текстура неба Края из ресурсов Minecraft.
-const skyTex=tex('end_sky');skyTex.repeat.set(5,5);
-const sky=new THREE.Mesh(new THREE.BoxGeometry(290,290,290),new THREE.MeshBasicMaterial({map:skyTex,side:THREE.BackSide,depthWrite:false,fog:false,color:0x77717f}));
+const skyTex=tex('end_sky');skyTex.repeat.set(4,4);
+const sky=new THREE.Mesh(new THREE.BoxGeometry(290,290,290),new THREE.MeshBasicMaterial({map:skyTex,side:THREE.BackSide,depthWrite:false,fog:false,color:0x99909d}));
 sky.position.copy(camera.position);sky.renderOrder=-10;scene.add(sky);
 
 const endMat=new THREE.MeshLambertMaterial({map:endTex}),obsMat=new THREE.MeshLambertMaterial({map:obsTex}),black=new THREE.MeshLambertMaterial({color:0x17111d}),purple=new THREE.MeshBasicMaterial({color:0xe279ff}),wingMat=new THREE.MeshLambertMaterial({color:0x201724,side:THREE.DoubleSide}),eyeMat=new THREE.MeshBasicMaterial({color:0xe787ff});
@@ -21,7 +36,7 @@ const cube=new THREE.BoxGeometry(1,1,1);function block(x,y,z,sx,sy,sz,mat,parent
 // Остров Края: неровный блочный рельеф.
 for(let x=-25;x<=25;x++)for(let z=-40;z<=13;z++){let r=Math.sqrt((x/24)**2+((z+12)/28)**2);if(r>1.04||Math.random()<.025)continue;let h=r>.84?2:3;for(let y=-2;y<h;y++)block(x,y,z,1,1,1,endMat)}
 // Обсидиановые башни и кристаллы.
-const towers=[[-17,-18,16],[-9,-31,22],[9,-31,19],[19,-17,24],[-21,1,13],[20,2,17],[-4,-39,26],[5,0,11]];
+const towers=[[-17,-18,16],[-9,-31,22],[9,-31,19],[19,-17,24],[-21,1,13],[20,2,17]];
 for(const [x,z,h] of towers){for(let y=3;y<h;y+=1)block(x,y,z,5,1,5,obsMat);let glow=block(x,h+1,z,1.7,1.7,1.7,new THREE.MeshBasicMaterial({map:crystalTex,transparent:true,side:THREE.DoubleSide}));glow.rotation.y=Math.PI/4;let halo=new THREE.PointLight(0xc979ff,1.5,9);halo.position.set(x,h+2,z);scene.add(halo)}
 // Центральный портал выхода.
 const bedrockTex=tex('bedrock');
@@ -41,10 +56,12 @@ const portalStars=[];for(let i=0;i<55;i++){
 }
 const portalGlow=new THREE.PointLight(0xa987dc,3.5,16);portalGlow.position.set(0,5,-19);scene.add(portalGlow);
 
-const dragon=new THREE.Group();scene.add(dragon);const body=block(0,0,0,2.8,2.4,5.3,black,dragon);block(0,.8,-3.3,1.3,1.3,2.6,black,dragon);const head=block(0,.85,-5.3,2.1,1.5,2.2,black,dragon);block(-.66,1.12,-6.45,.48,.25,.15,eyeMat,dragon);block(.66,1.12,-6.45,.48,.25,.15,eyeMat,dragon);
-for(const x of [-.72,.72]){block(x,1.9,-5.55,.35,.8,.35,black,dragon);block(x,-1.4,1.3,.65,1.6,.7,black,dragon)}
-const tail=new THREE.Group();dragon.add(tail);for(let i=0;i<5;i++)block(0,-.3-i*.12,3+i*1.25,1.5-i*.22,1.1-i*.14,1.4,black,tail);
-function wing(side){const g=new THREE.Group();g.position.set(side*1.2,.7,.3);dragon.add(g);const points=[0,0,0,side*8,1.3,1,side*7,-.5,4,side*3,-.8,3];const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(points,3));geo.setIndex([0,1,2,0,2,3]);geo.computeVertexNormals();const mesh=new THREE.Mesh(geo,wingMat);g.add(mesh);block(side*3,.4,1,.28,.25,5,black,g);return g}const wings=[wing(-1),wing(1)];
+const dragon=new THREE.Group();scene.add(dragon);const dragonSkin=new THREE.MeshLambertMaterial({map:dragonTex,color:0xeee5f2});
+const dragonDark=new THREE.MeshLambertMaterial({map:dragonTex,color:0xbab0c6});
+const body=block(0,0,0,2.8,2.4,5.3,dragonSkin,dragon);block(0,.8,-3.3,1.3,1.3,2.6,dragonDark,dragon);const head=block(0,.85,-5.3,2.1,1.5,2.2,dragonSkin,dragon);block(-.66,1.12,-6.45,.48,.25,.15,eyeMat,dragon);block(.66,1.12,-6.45,.48,.25,.15,eyeMat,dragon);
+for(const x of [-.72,.72]){block(x,1.9,-5.55,.35,.8,.35,dragonDark,dragon);block(x,-1.4,1.3,.65,1.6,.7,dragonSkin,dragon)}
+const tail=new THREE.Group();dragon.add(tail);for(let i=0;i<5;i++)block(0,-.3-i*.12,3+i*1.25,1.5-i*.22,1.1-i*.14,1.4,dragonDark,tail);
+function wing(side){const g=new THREE.Group();g.position.set(side*1.2,.7,.3);dragon.add(g);const points=[0,0,0,side*8,1.3,1,side*7,-.5,4,side*3,-.8,3];const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(points,3));geo.setIndex([0,1,2,0,2,3]);geo.computeVertexNormals();const mesh=new THREE.Mesh(geo,wingMat);g.add(mesh);block(side*3,.4,1,.28,.25,5,dragonDark,g);return g}const wings=[wing(-1),wing(1)];
 // Лук и рука игрока — фиксированы относительно камеры.
 const bow=new THREE.Group();camera.add(bow);scene.add(camera);bow.visible=false;bow.position.set(1.05,-.75,-1.7);const wood=new THREE.MeshBasicMaterial({color:0x7b5130});for(let i=0;i<12;i++){let a=i/11*Math.PI-Math.PI/2;block(Math.sin(a)*.17,Math.cos(a)*.9-.05,0,.1,.18,.12,wood,bow)}const stringMat=new THREE.LineBasicMaterial({color:0xeee5d5});let pts=[new THREE.Vector3(-.17,-.05,0),new THREE.Vector3(0,.85,0),new THREE.Vector3(.17,-.05,0),new THREE.Vector3(0,-.95,0)];bow.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),stringMat));block(.25,-.9,.1,.65,.9,.65,new THREE.MeshBasicMaterial({color:0xb78a68}),bow);
 // Частицы и лучи гибели дракона.
@@ -61,19 +78,62 @@ for(let i=0;i<110;i++){
  particle.userData.velocity=new THREE.Vector3((Math.random()-.5)*.16,(Math.random()-.5)*.2,(Math.random()-.5)*.16);
  deathParticles.push(particle);particle.visible=false;scene.add(particle)
 }
+
+// Портал входа в Край, с оригинальными текстурами из пользовательского JAR.
+const introCanvas=document.getElementById('portal-art'),ic=introCanvas.getContext('2d');ic.imageSmoothingEnabled=false;
+const portalImgs={};for(const key of ['portal_frame_top','portal_frame_side','portal_frame_eye','portal_stars','dirt']){const img=new Image();img.src='assets/'+key+'.png';portalImgs[key]=img}
+function tile(key,x,y,w,h){const im=portalImgs[key];if(im.complete&&im.naturalWidth)ic.drawImage(im,Math.round(x),Math.round(y),Math.round(w),Math.round(h));else{ic.fillStyle='#52665a';ic.fillRect(x,y,w,h)}}
+function portalDraw(t){
+ const w=640,h=360;ic.fillStyle='#18151b';ic.fillRect(0,0,w,h);
+ // Каменные стены крепости и тёплое освещение.
+ for(let y=0;y<360;y+=34)for(let x=-35;x<680;x+=68){let xx=x+(Math.floor(y/34)%2)*34;ic.fillStyle=((x+y)%3===0)?'#585957':'#4a4c49';ic.fillRect(xx,y,67,33);ic.fillStyle='#30332f';ic.fillRect(xx,y+30,67,4);ic.fillStyle='#6d6e68';ic.fillRect(xx,y,67,3)}
+ ic.fillStyle='#30302c';ic.fillRect(0,240,640,120);
+ for(let z=0;z<7;z++){let yy=248+z*20;ic.fillStyle=z%2?'#41433c':'#373a34';ic.fillRect(0,yy,640,20);for(let x=0;x<640;x+=80){ic.fillStyle='#292b28';ic.fillRect(x+(z%2)*40,yy,3,20)}}
+ // Рама портала: перспектива с двенадцатью блоками.
+ const outer=[[190,149],[449,149],[520,262],[120,262]];
+ ic.beginPath();outer.forEach(([x,y],i)=>i?ic.lineTo(x,y):ic.moveTo(x,y));ic.closePath();ic.fillStyle='#152017';ic.fill();
+ const inner=[[212,163],[427,163],[479,247],[160,247]];
+ ic.save();ic.beginPath();inner.forEach(([x,y],i)=>i?ic.lineTo(x,y):ic.moveTo(x,y));ic.closePath();ic.clip();
+ tile('portal_stars',155,150,330,105);ic.fillStyle='rgba(0,0,0,.38)';ic.fillRect(150,145,340,110);
+ for(let i=0;i<65;i++){let x=165+(i*71)%320,y=160+(i*37)%88;ic.fillStyle=i%4?'#9ba1ac':'#fff';ic.fillRect(x+Math.sin(t*.0004+i)*2,y,1+(i%2),1+(i%2))}ic.restore();
+ // Боковые 3D-грани рамок.
+ for(let i=0;i<4;i++){
+  let f=i/4;let x1=190+(120-190)*f,y1=149+(262-149)*f;
+  let x2=190+(120-190)*(f+.25),y2=149+(262-149)*(f+.25);
+  tile('portal_frame_side',x2,y2,Math.max(22,x1-x2+18),23);
+  let xr=449+(520-449)*f,yr=149+(262-149)*f;
+  tile('portal_frame_side',xr,yr,24,24)
+ }
+ for(let i=0;i<4;i++){
+  let f=i/4;let x=194+i*64;tile('portal_frame_top',x,143,61,23);
+  tile('portal_frame_eye',x+20,146,20,14);
+  let xb=126+i*95;tile('portal_frame_top',xb,249,93,30);tile('portal_frame_eye',xb+32,252,25,19)
+ }
+ // Передний край каменной платформы.
+ ic.fillStyle='#262923';ic.fillRect(116,278,410,13);
+ ic.fillStyle='#5c6056';ic.fillRect(116,277,410,4);
+ // Пиксельный свет факелов крепости.
+ for(const x of [75,557]){ic.fillStyle='#513b25';ic.fillRect(x,151,7,28);ic.fillStyle='#edac43';ic.fillRect(x-3,139,13,16);ic.fillStyle='#fff1a0';ic.fillRect(x,141,6,9)}
+}
+const introRoot=document.getElementById('portal-intro'),loading=document.getElementById('loading-screen'),progress=document.getElementById('loading-progress'),status=document.getElementById('loading-status');
+let loadingStart=0;
+function beginPortal(){if(state!=='intro'&&state!=='win')return;state='loading';introRoot.style.display='none';overlay.style.display='none';hud.style.display='none';loading.style.display='flex';loadingStart=performance.now();progress.style.width='0%';}
+document.getElementById('enter-end').addEventListener('click',beginPortal);
+function startFight(){loading.style.display='none';deathBeams.visible=false;deathParticles.forEach(p=>p.visible=false);hits=0;fill.style.width='100%';overlay.style.display='none';hud.style.display='block';state='fight';dragon.visible=true;dragon.scale.setScalar(1.45);}
+
 let state='intro',hits=0,shotAt=0,shake=0,dyingAt=0;const ray=new THREE.Raycaster(),clock=new THREE.Clock();const arrows=[];
 function resize(){const w=game.clientWidth,h=game.clientHeight;renderer.setSize(Math.max(320,Math.floor(w)),Math.max(240,Math.floor(h)),false);renderer.domElement.style.width='100%';renderer.domElement.style.height='100%';camera.aspect=w/h;camera.updateProjectionMatrix()}window.addEventListener('resize',resize);resize();
 function shoot(e){if(state!=='fight'||performance.now()-shotAt<380)return;shotAt=performance.now();let r=renderer.domElement.getBoundingClientRect();let x=((e.clientX-r.left)/r.width)*2-1,y=-((e.clientY-r.top)/r.height)*2+1;ray.setFromCamera(new THREE.Vector2(x,y),camera);let hit=ray.intersectObjects(dragon.children,true).length>0;const a=new THREE.Mesh(new THREE.BoxGeometry(.08,.08,1.4),new THREE.MeshBasicMaterial({color:0xd6c8a8}));a.position.copy(camera.position);a.quaternion.copy(camera.quaternion);scene.add(a);let dir=ray.ray.direction.clone();arrows.push({mesh:a,dir,life:0});bow.position.z=-1.4;setTimeout(()=>bow.position.z=-1.7,130);
 if(hit){hits++;fill.style.width=(100-hits*20)+'%';flash.style.opacity='.3';setTimeout(()=>flash.style.opacity='0',120);if(hits>=5){state='dying';dyingAt=performance.now();deathBeams.visible=true;deathParticles.forEach(p=>{p.visible=true;p.position.copy(dragon.position).add(p.userData.offset);p.material.opacity=1})}}}
 renderer.domElement.addEventListener('pointerdown',shoot);
 function finish(){state='win';hud.style.display='none';overlay.style.display='flex';heading.textContent='ВЫ ПРОШЛИ ИГРУ';description.innerHTML='Дракон Края побеждён.<br><br>Но действительно ли Minecraft закончился?';start.textContent='ИГРАТЬ СНОВА'}
-start.onclick=()=>{deathBeams.visible=false;deathParticles.forEach(p=>p.visible=false);hits=0;fill.style.width='100%';overlay.style.display='none';hud.style.display='block';state='fight';dragon.visible=true;dragon.scale.setScalar(1.45)};
-function animate(){requestAnimationFrame(animate);const t=clock.getElapsedTime();if(state==='fight'||state==='dying'){
-const s=t*.72;dragon.position.set(Math.sin(s)*5.5,9.5+Math.sin(s*2)*1.5,-12+Math.cos(s)*2);dragon.scale.setScalar(1.45);dragon.rotation.y=Math.sin(s*.7)*.8;dragon.rotation.z=Math.sin(s*1.4)*.12;wings[0].rotation.z=Math.sin(t*5)*.5;wings[1].rotation.z=-Math.sin(t*5)*.5;tail.rotation.y=Math.sin(t*2)*.2;
+start.onclick=()=>{introRoot.style.display='flex';overlay.style.display='none';hud.style.display='none';state='intro';};
+function animate(){requestAnimationFrame(animate);const t=clock.getElapsedTime();if(state==='intro')portalDraw(performance.now());if(state==='loading'){let elapsed=performance.now()-loadingStart;let pct=Math.min(100,Math.floor(elapsed/22));progress.style.width=pct+'%';status.textContent=pct<70?'Подготовка измерения':'Загрузка ландшафта...';if(elapsed>2300)startFight()}if(state==='fight'||state==='dying'){
+const s=t*.72;if(state==='fight'){dragon.position.set(Math.sin(s)*5.5,9.5+Math.sin(s*2)*1.5,-12+Math.cos(s)*2);dragon.scale.setScalar(1.45);dragon.rotation.y=Math.sin(s*.7)*.8;dragon.rotation.z=Math.sin(s*1.4)*.12;}wings[0].rotation.z=Math.sin(t*5)*.5;wings[1].rotation.z=-Math.sin(t*5)*.5;tail.rotation.y=Math.sin(t*2)*.2;
 if(state==='dying'){
  let elapsed=(performance.now()-dyingAt)/1000;
- dragon.rotation.z+=elapsed*.06;dragon.rotation.y+=.045;
- dragon.position.y+=.018;
+ dragon.rotation.z+=.025;dragon.rotation.y+=.045;
+ dragon.position.y+=.025;
  dragon.scale.setScalar(1.45*Math.max(.02,1-elapsed/4.3));
  deathBeams.position.copy(dragon.position);deathBeams.scale.setScalar(.3+elapsed*.32);
  deathBeams.rotation.y+=.045;
